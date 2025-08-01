@@ -1,0 +1,31 @@
+{
+  "name": "cliniaura-backend-project",
+  "version": "1.0.0",
+  "description": "This project uses Node.js, Express.js, MySQL, and Prisma",
+  "scripts": {
+    "start": "node src/app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WebMobi-3/cliniAura-backend-project.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/WebMobi-3/cliniAura-backend-project/issues"
+  },
+  "homepage": "https://github.com/WebMobi-3/cliniAura-backend-project#readme",
+  "dependencies": {
+    "@prisma/client": "^6.13.0",
+    "bcrypt": "^6.0.0",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "express-validator": "^7.2.1",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.0.2",
+    "mysql2": "^3.14.3",
+    "prisma": "^6.13.0"
+  }
+}

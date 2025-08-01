@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             Int           @id @default(autoincrement())
+  first_name     String
+  last_name      String
+  email          String        @unique
+  phone          String?
+  password       String
+  social_provider String?      // 'google', 'linkedin', etc.
+  social_id      String?
+  created_at     DateTime      @default(now())
+  updated_at     DateTime      @updatedAt
+
+  profile        UserProfile?
+  resumes        Resume[]
+}
+
+model UserProfile {
+  id               Int      @id @default(autoincrement())
+  user_id          Int      @unique
+  about_me         String?
+  preferred_role   String?
+  key_skills       String?
+  education        String?  // JSON string
+  work_experience  String?  // JSON string
+  certifications   String?
+  projects         String?
+  languages        String?
+  address          String?
+  city             String?
+  pincode          String?
+  marital_status   String?
+  dob              DateTime?
+  work_permit      Boolean?
+  profile_pic_url  String?
+  profile_complete Boolean?
+
+  user             User     @relation(fields: [user_id], references: [id])
+}
+
+model Resume {
+  id         Int     @id @default(autoincrement())
+  user_id    Int
+  file_url   String
+  created_at DateTime @default(now())
+
+  user       User    @relation(fields: [user_id], references: [id])
+}
