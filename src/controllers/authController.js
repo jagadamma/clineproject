@@ -65,24 +65,74 @@
 
 
 
-const { PrismaClient } = require("@prisma/client");
-const {
-    generateToken,
-    hashPassword,
-    comparePassword,
-} = require("../utils/auth");
+// const { PrismaClient } = require("@prisma/client");
+// const {
+//     generateToken,
+//     hashPassword,
+//     comparePassword,
+// } = require("../utils/auth");
 
-const { OAuth2Client } = require("google-auth-library");
-const axios = require("axios");
-require("dotenv").config();
+// const { OAuth2Client } = require("google-auth-library");
+// const axios = require("axios");
+// require("dotenv").config();
 
-const prisma = new PrismaClient();
-const googleClient = new OAuth2Client();
+// const prisma = new PrismaClient();
+// const googleClient = new OAuth2Client();
 
-// // ✅ SIGNUP API
+// // // ✅ SIGNUP API
+// // exports.signup = async (req, res) => {
+// //     try {
+// //         const { first_name, last_name, email, phone, password } = req.body;
+
+// //         const existingUser = await prisma.user.findUnique({ where: { email } });
+// //         if (existingUser) {
+// //             return res.status(400).json({ message: "Email already registered" });
+// //         }
+
+// //         const hashed = await hashPassword(password);
+
+// //         const user = await prisma.user.create({
+// //             data: {
+// //                 first_name,
+// //                 last_name,
+// //                 email,
+// //                 phone,
+// //                 password: hashed,
+// //             },
+// //         });
+
+// //         const token = generateToken(user);
+
+// //         res.status(201).json({ message: "Signup successful", token, user });
+// //     } catch (err) {
+// //         console.error(err);
+// //         res.status(500).json({ message: "Server error" });
+// //     }
+// // };
+
+// // // ✅ LOGIN API
+// // exports.login = async (req, res) => {
+// //     try {
+// //         const { email, password } = req.body;
+
+// //         const user = await prisma.user.findUnique({ where: { email } });
+// //         if (!user) return res.status(404).json({ message: "User not found" });
+
+// //         const isMatch = await comparePassword(password, user.password);
+// //         if (!isMatch) return res.status(401).json({ message: "Invalid password" });
+
+// //         const token = generateToken(user);
+
+// //         res.json({ message: "Login successful", token, user });
+// //     } catch (err) {
+// //         console.error(err);
+// //         res.status(500).json({ message: "Server error" });
+// //     }
+// // };
+
 // exports.signup = async (req, res) => {
 //     try {
-//         const { first_name, last_name, email, phone, password } = req.body;
+//         const { first_name, last_name, email, phone, password, profile_type } = req.body;
 
 //         const existingUser = await prisma.user.findUnique({ where: { email } });
 //         if (existingUser) {
@@ -91,6 +141,9 @@ const googleClient = new OAuth2Client();
 
 //         const hashed = await hashPassword(password);
 
+//         // 👇 convert profile_type to boolean
+//         const isStudent = profile_type === "student" ? true : false;
+
 //         const user = await prisma.user.create({
 //             data: {
 //                 first_name,
@@ -98,19 +151,24 @@ const googleClient = new OAuth2Client();
 //                 email,
 //                 phone,
 //                 password: hashed,
+//                 isStudent,
 //             },
 //         });
 
 //         const token = generateToken(user);
 
-//         res.status(201).json({ message: "Signup successful", token, user });
+//         res.status(201).json({
+//             message: "Signup successful",
+//             token,
+//             user,
+//             redirectTo: isStudent ? "student-dashboard" : "employer-dashboard", // 👈 optional redirect
+//         });
 //     } catch (err) {
 //         console.error(err);
 //         res.status(500).json({ message: "Server error" });
 //     }
 // };
 
-// // ✅ LOGIN API
 // exports.login = async (req, res) => {
 //     try {
 //         const { email, password } = req.body;
@@ -123,13 +181,122 @@ const googleClient = new OAuth2Client();
 
 //         const token = generateToken(user);
 
-//         res.json({ message: "Login successful", token, user });
+//         res.json({
+//             message: "Login successful",
+//             token,
+//             user,
+//             redirectTo: user.isStudent ? "student-dashboard" : "employer-dashboard", // 👈 optional
+//         });
 //     } catch (err) {
 //         console.error(err);
 //         res.status(500).json({ message: "Server error" });
 //     }
 // };
 
+
+
+
+
+// // ✅ SOCIAL LOGIN API (Google, LinkedIn, Facebook)
+// exports.socialLogin = async (req, res) => {
+//     const { provider, token } = req.body;
+//     console.log("req.body", req.body)
+
+//     if (!provider || !token) {
+//         return res.status(400).json({ message: "Provider and token are required" });
+//     }
+
+//     try {
+//         let email, first_name, last_name, social_id;
+
+//         if (provider === "google") {
+//             const ticket = await googleClient.verifyIdToken({
+//                 idToken: token,
+//                 audience: process.env.GOOGLE_CLIENT_ID,
+//             });
+
+//             const payload = ticket.getPayload();
+//             email = payload.email;
+//             first_name = payload.given_name;
+//             last_name = payload.family_name || "";
+//             social_id = payload.sub;
+
+//         } else if (provider === "facebook") {
+//             const fbRes = await axios.get(
+//                 `https://graph.facebook.com/me?fields=id,name,email&access_token=${token}`
+//             );
+
+//             const [first, last] = fbRes.data.name.split(" ");
+//             email = fbRes.data.email;
+//             first_name = first;
+//             last_name = last;
+//             social_id = fbRes.data.id;
+
+//         } else if (provider === "linkedin") {
+//             const profileRes = await axios.get("https://api.linkedin.com/v2/me", {
+//                 headers: { Authorization: `Bearer ${token}` },
+//             });
+
+//             const emailRes = await axios.get(
+//                 "https://api.linkedin.com/v2/emailAddress?q=members&projection=(elements*(handle~))",
+//                 {
+//                     headers: { Authorization: `Bearer ${token}` },
+//                 }
+//             );
+
+//             const fullName = profileRes.data.localizedFirstName + " " + profileRes.data.localizedLastName;
+//             const [first, last] = fullName.split(" ");
+//             email = emailRes.data.elements[0]["handle~"].emailAddress;
+//             first_name = first;
+//             last_name = last;
+//             social_id = profileRes.data.id;
+
+//         } else {
+//             return res.status(400).json({ message: "Unsupported provider" });
+//         }
+
+//         let user = await prisma.user.findUnique({ where: { email } });
+
+//         if (!user) {
+//             user = await prisma.user.create({
+//                 data: {
+//                     email,
+//                     first_name,
+//                     last_name,
+//                     social_provider: provider,
+//                     social_id,
+//                     password: "", // Social login users don't need password
+//                 },
+//             });
+//         }
+
+//         const jwt = generateToken(user);
+
+//         res.json({ message: "Social login successful", token: jwt, user });
+
+//     } catch (err) {
+//         console.error(err);
+//         res.status(401).json({ message: "Social login failed", error: err.message });
+//     }
+// };
+
+
+
+const { PrismaClient } = require("@prisma/client");
+const {
+    generateToken,
+    hashPassword,
+    comparePassword,
+} = require("../utils/auth");
+
+const { OAuth2Client } = require("google-auth-library");
+const axios = require("axios");
+require("dotenv").config();
+
+const prisma = new PrismaClient();
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// ✅ SIGNUP API (with profile_type logic)
 exports.signup = async (req, res) => {
     try {
         const { first_name, last_name, email, phone, password, profile_type } = req.body;
@@ -141,8 +308,7 @@ exports.signup = async (req, res) => {
 
         const hashed = await hashPassword(password);
 
-        // 👇 convert profile_type to boolean
-        const isStudent = profile_type === "student" ? true : false;
+        const isStudent = profile_type === "student";
 
         const user = await prisma.user.create({
             data: {
@@ -161,7 +327,7 @@ exports.signup = async (req, res) => {
             message: "Signup successful",
             token,
             user,
-            redirectTo: isStudent ? "student-dashboard" : "employer-dashboard", // 👈 optional redirect
+            redirectTo: isStudent ? "student-dashboard" : "employer-dashboard",
         });
     } catch (err) {
         console.error(err);
@@ -169,6 +335,7 @@ exports.signup = async (req, res) => {
     }
 };
 
+// ✅ LOGIN API
 exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -185,7 +352,7 @@ exports.login = async (req, res) => {
             message: "Login successful",
             token,
             user,
-            redirectTo: user.isStudent ? "student-dashboard" : "employer-dashboard", // 👈 optional
+            redirectTo: user.isStudent ? "student-dashboard" : "employer-dashboard",
         });
     } catch (err) {
         console.error(err);
@@ -193,13 +360,10 @@ exports.login = async (req, res) => {
     }
 };
 
-
-
-
-
-// ✅ SOCIAL LOGIN API (Google, LinkedIn, Facebook)
+// ✅ SOCIAL LOGIN API (Google, Facebook, LinkedIn)
 exports.socialLogin = async (req, res) => {
     const { provider, token } = req.body;
+    console.log("req.body", req.body)
 
     if (!provider || !token) {
         return res.status(400).json({ message: "Provider and token are required" });
@@ -278,3 +442,95 @@ exports.socialLogin = async (req, res) => {
         res.status(401).json({ message: "Social login failed", error: err.message });
     }
 };
+
+// ✅ GOOGLE OAUTH CALLBACK HANDLER
+// exports.googleCallback = async (req, res) => {
+//     const { code } = req.query;
+
+//     if (!code) {
+//         return res.status(400).json({ message: "Authorization code is missing" });
+//     }
+
+//     try {
+//         // Exchange code for tokens
+//         const { tokens } = await googleClient.getToken(code);
+//         googleClient.setCredentials(tokens);
+
+//         // Verify and get user info
+//         const ticket = await googleClient.verifyIdToken({
+//             idToken: tokens.id_token,
+//             audience: process.env.GOOGLE_CLIENT_ID,
+//         });
+
+//         const payload = ticket.getPayload();
+//         const email = payload.email;
+//         const first_name = payload.given_name;
+//         const last_name = payload.family_name || "";
+//         const social_id = payload.sub;
+
+//         // Check or create user
+//         let user = await prisma.user.findUnique({ where: { email } });
+
+//         if (!user) {
+//             user = await prisma.user.create({
+//                 data: {
+//                     email,
+//                     first_name,
+//                     last_name,
+//                     social_provider: 'google',
+//                     social_id,
+//                     password: "",
+//                 },
+//             });
+//         }
+
+//         const jwt = generateToken(user);
+
+//         res.json({
+//             message: "Google OAuth login successful",
+//             token: jwt,
+//             user,
+//         });
+
+//         // Or redirect if needed
+//         // res.redirect(`http://localhost:3000/dashboard?token=${jwt}`);
+//     } catch (err) {
+//         console.error("Google callback error:", err);
+//         res.status(500).json({ message: "Failed to authenticate user", error: err.message });
+//     }
+// };
+
+
+// 👇 Google Callback Controller
+exports.googleCallback = async (req, res) => {
+    const code = req.query.code;
+
+    if (!code) return res.status(400).json({ message: "Code not found in callback" });
+
+    try {
+        // 🔁 Exchange code for access_token
+        const response = await axios.post("https://oauth2.googleapis.com/token", null, {
+            params: {
+                code,
+                client_id: process.env.GOOGLE_CLIENT_ID,
+                client_secret: process.env.GOOGLE_CLIENT_SECRET,
+                redirect_uri: process.env.GOOGLE_REDIRECT_URI, // example: http://localhost:3000/api/auth/google/callback
+                grant_type: "authorization_code"
+            }
+        });
+
+        const { access_token } = response.data;
+
+        // 🧠 Reuse existing socialLogin logic
+        req.body = {
+            provider: "google",
+            token: access_token,
+        };
+
+        return exports.socialLogin(req, res); // call existing function
+    } catch (error) {
+        console.error("Google Callback Error:", error.response?.data || error.message);
+        return res.status(500).json({ message: "Google callback failed" });
+    }
+};
+

@@ -8,4 +8,8 @@ router.post("/signup", signupValidationRules, validateRequest, authController.si
 router.post("/login", loginValidationRules, validateRequest, authController.login);
 router.post("/social-login", authController.socialLogin);
 
+
+// ✅ Google OAuth redirect callback (code-based login flow)
+router.get("/google/callback", authController.googleCallback);
+
 module.exports = router;

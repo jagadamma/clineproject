@@ -26,7 +26,7 @@ app.use("/api/lang", langRoutes)
 app.use('/api/courses', courseRoutes);
 app.use('/api/progress', progressRoutes);
 app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/jobs', jobRoutes);
+app.use('/api/jobs', jobRoutes);        //inside of employer post job
 app.use('/api/user-jobs', jobUserRoutes);
 app.use('/api', courseLibraryRoutes);
 
