@@ -25,9 +25,17 @@ model User {
   social_id      String?
   created_at     DateTime      @default(now())
   updated_at     DateTime      @updatedAt
+  isStudent  Boolean @default(true) // 👈 add this line
 
   profile        UserProfile?
   resumes        Resume[]
+  js_languages   JS_languages[]   // 👈 Inverse relation added
+  enrollment     Enrollment[]
+  lessonProgress  LessonProgress[]
+  jobApplication   JobApplication[]
+   savedJobs         SavedJob[] 
+   orders         Order[]
+   cartItems    Cart[]
 }
 
 model UserProfile {
@@ -38,9 +46,7 @@ model UserProfile {
   key_skills       String?
   education        String?  // JSON string
   work_experience  String?  // JSON string
-  certifications   String?
   projects         String?
-  languages        String?
   address          String?
   city             String?
   pincode          String?
@@ -61,3 +67,165 @@ model Resume {
 
   user       User    @relation(fields: [user_id], references: [id])
 }
+
+
+model JS_languages {
+  id         Int       @id @default(autoincrement())
+  user_id    Int       // 👈 FK to User
+  lang_id    Int
+  lang_name  String?
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+   // Relations
+  student    User       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  language   languages  @relation(fields: [lang_id], references: [lang_id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([user_id, lang_id])   // 👈 Updated composite unique key
+
+}
+
+model languages {
+  lang_id     Int            @id
+  lang_name   String
+  users       JS_languages[]
+  // other fields...
+}
+
+
+model Course {
+  id           Int           @id @default(autoincrement())
+  name         String
+  description  String
+  category     String?
+  totalLessons Int
+  language     String?
+  duration     Int // minutes
+  modules      Module[]
+  enrollments  Enrollment[]
+  created_at   DateTime      @default(now())
+  updated_at   DateTime      @updatedAt
+
+  cartItems    Cart[]       // Reverse relation to Cart
+  orders       Order[]      // Reverse relation to Order
+}
+
+model Module {
+  id        Int      @id @default(autoincrement())
+  courseId  Int
+  title     String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  lessons   Lesson[]
+}
+
+model Lesson {
+  id        Int      @id @default(autoincrement())
+  moduleId  Int
+  title     String
+  videoUrl  String
+  duration  Int // in minutes
+  lessonProgress  LessonProgress[]
+  module    Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+}
+
+model Enrollment {
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  courseId       Int
+  completed      Boolean  @default(false)
+  durationSpent  Int      @default(0)
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course         Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+}
+
+model LessonProgress {
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  lessonId  Int
+  completed Boolean @default(true)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson    Lesson  @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+}
+
+model JobPosting {
+  id             Int      @id @default(autoincrement())
+  title          String
+  description    String   @db.Text
+  location       String
+  workMode       WorkMode
+  experienceMin  Int
+  experienceMax  Int
+  salaryMin      Int
+  salaryMax      Int
+  companyName    String
+  companyLogo    String? // optional URL
+  applyLink      String
+  postedAt       DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  jobApplication  JobApplication[]
+   savedByUsers     SavedJob[]
+}
+
+enum WorkMode {
+  REMOTE
+  ONSITE
+  HYBRID
+}
+
+model JobApplication {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  jobId     Int
+  status    String   // e.g. "Applied", "Reviewed", etc.
+  appliedAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id])
+  job       JobPosting @relation(fields: [jobId], references: [id])
+  @@unique([userId, jobId]) 
+}
+
+model SavedJob {
+  id      Int         @id @default(autoincrement())
+  userId  Int
+  jobId   Int
+  user    User        @relation(fields: [userId], references: [id])
+  job     JobPosting  @relation(fields: [jobId], references: [id])
+  
+  @@unique([userId, jobId])
+}
+
+
+model Cart {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  courseId  Int
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+}
+
+model Order {
+  id        Int         @id @default(autoincrement())
+  userId    Int
+  courseId  Int
+  amount    Float
+  status    OrderStatus @default(PENDING)
+  createdAt DateTime    @default(now())
+
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course    Course      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+}
+
+enum OrderStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+

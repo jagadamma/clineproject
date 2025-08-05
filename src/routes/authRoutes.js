@@ -6,5 +6,6 @@ const validateRequest = require("../middlewares/validateRequest");
 
 router.post("/signup", signupValidationRules, validateRequest, authController.signup);
 router.post("/login", loginValidationRules, validateRequest, authController.login);
+router.post("/social-login", authController.socialLogin);
 
 module.exports = router;
