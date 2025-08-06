@@ -1,11 +1,15 @@
 pipeline {
     agent any
 
-    tools {
-        nodejs "nodejs" // Ensure NodeJS is configured in Jenkins Global Tools
-    }
-
     stages {
+
+        stage('Clean Workspace') {
+            steps {
+                echo "🧹 Cleaning workspace..."
+                deleteDir()
+            }
+        }
+
         stage('Git Checkout') {
             steps {
                 git branch: 'main', credentialsId: 'gittoken', url: 'https://github.com/WebMobi-3/cliniAura-backend-project.git'
