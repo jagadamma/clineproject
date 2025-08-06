@@ -14,8 +14,6 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                sh 'rm -rf node_modules'
-                sh 'rm -rf package-lock.json'
                 sh 'npm install'
             }
         }
@@ -29,16 +27,21 @@ pipeline {
         stage('Restart Server using nohup') {
             steps {
                 script {
-                    // Kill any existing Node process running on port 3000
                     sh '''
-                    PID=$(lsof -t -i:3000)
-                    if [ ! -z "$PID" ]; then
-                      kill -9 $PID
-                    fi
-                    '''
+                    echo "🔍 Checking for existing process on port 3000..."
+                    PID=$(lsof -t -i:3000 || true)
 
-                    // Start the updated app using nohup
-                    sh 'nohup node src/app.js > app.log 2>&1 &'
+                    if [ ! -z "$PID" ]; then
+                        echo "❌ Killing process using port 3000 (PID: $PID)"
+                        kill -9 $PID
+                    else
+                        echo "✅ No existing process on port 3000"
+                    fi
+
+                    echo "🚀 Starting app using nohup..."
+                    nohup node src/app.js > app.log 2>&1 &
+                    echo "✅ App started in background"
+                    '''
                 }
             }
         }
