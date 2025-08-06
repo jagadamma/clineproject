@@ -5,7 +5,7 @@ pipeline {
 
         stage('Clean Workspace') {
             steps {
-                sh 'rm -rf /var/lib/jenkins/workspace/node/*    
+                sh 'rm -rf /var/lib/jenkins/workspace/node/*'
             }
         }
 
