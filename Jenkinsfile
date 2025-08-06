@@ -5,8 +5,7 @@ pipeline {
 
         stage('Clean Workspace') {
             steps {
-                echo "🧹 Cleaning workspace..."
-                deleteDir()
+                sh 'rm -rf /var/lib/jenkins/workspace/*       
             }
         }
 
