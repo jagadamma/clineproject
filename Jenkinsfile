@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    tools {
+        nodejs "nodejs" // Ensure NodeJS is configured in Jenkins Global Tools
+    }
+
     stages {
         stage('Git Checkout') {
             steps {
@@ -10,8 +14,8 @@ pipeline {
 
         stage('Install Dependencies') {
             steps {
-                sh 'pwd'
-                sh 'rm -rf  node_modules'
+                sh 'rm -rf node_modules'
+                sh 'rm -rf package-lock.json'
                 sh 'npm install'
             }
         }
@@ -22,22 +26,19 @@ pipeline {
             }
         }
 
-        stage('Start or Restart Server with PM2') {
+        stage('Restart Server using nohup') {
             steps {
                 script {
-                    // Check if app is already running
-                    def appRunning = sh(script: "pm2 list | grep 'app.js'", returnStatus: true) == 0
+                    // Kill any existing Node process running on port 3000
+                    sh '''
+                    PID=$(lsof -t -i:3000)
+                    if [ ! -z "$PID" ]; then
+                      kill -9 $PID
+                    fi
+                    '''
 
-                    if (appRunning) {
-                        echo "App is already running. Restarting..."
-                        sh 'pm2 restart app.js'
-                    } else {
-                        echo "App is not running. Starting..."
-                        sh 'pm2 start src/app.js'
-                    }
-
-                    // Save PM2 process list
-                    sh 'pm2 save'
+                    // Start the updated app using nohup
+                    sh 'nohup node src/app.js > app.log 2>&1 &'
                 }
             }
         }
