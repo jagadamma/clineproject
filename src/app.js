@@ -31,7 +31,7 @@ app.use('/api/user-jobs', jobUserRoutes);
 app.use('/api', courseLibraryRoutes);
 
 app.get("/", (req, res) => {
-    res.send("👋 SWelcome to cliniAura API");
+    res.send("👋 everyone Welcome to cliniAura API");
 });
 
 app.listen(3000, () => {
