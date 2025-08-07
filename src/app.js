@@ -17,7 +17,6 @@ const employerRoutes = require('./routes/employer.routes');
 require("dotenv").config();
 
 const app = express();
-
 // ✅ Secure and domain-specific CORS config
 const corsOptions = {
     origin: [
