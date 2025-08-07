@@ -37,14 +37,26 @@ pipeline {
 
         stage('Restart App in Background') {
             steps {
-                echo "🚀 Stopping any running Node process and starting the new app..."
-
+                echo "🚀 Stopping Node processes started from this workspace and starting the new app..."
                 sh '''
-                echo "🔍 Killing all Node.js processes..."
-                pkill -f "node" || true
+                set -euo pipefail
+                echo "🔍 Killing Node.js processes started from workspace ($WORKSPACE)..."
 
-                echo "🎯 Starting app from current workspace..."
-                nohup npm start > $LOG_FILE 2>&1 &
+                # find node pids, check each pid's cwd, and only kill those inside $WORKSPACE
+                for pid in $(pgrep -f "node" || true); do
+                  if [ -d "/proc/$pid" ]; then
+                    cwd=$(readlink -f /proc/$pid/cwd 2>/dev/null || true)
+                    if [ -n "$cwd" ] && echo "$cwd" | grep -q "$WORKSPACE"; then
+                      echo "Killing PID $pid (cwd: $cwd)"
+                      sudo kill -9 $pid || true
+                    fi
+                  fi
+                done
+
+                echo "🎯 Starting app from current workspace ($WORKSPACE)..."
+                cd "$WORKSPACE"
+                # ensure node binds to all interfaces — adjust start script if it needs env vars
+                nohup npm start > "$LOG_FILE" 2>&1 &
                 sleep 3
                 echo "✅ App started in background. Log file: $LOG_FILE"
                 '''
