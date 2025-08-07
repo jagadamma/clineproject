@@ -10,7 +10,7 @@ pipeline {
         stage('Clean Workspace') {
             steps {
                 echo "🧹 Cleaning workspace..."
-                deleteDir() // This deletes all files in the workspace
+                deleteDir()
             }
         }
 
@@ -37,21 +37,15 @@ pipeline {
 
         stage('Restart App in Background') {
             steps {
-                echo "🚀 Restarting the app using nohup..."
+                echo "🚀 Stopping any running Node process and starting the new app..."
 
                 sh '''
-                echo "🔍 Checking for existing process on port $PORT..."
-                PID=$(lsof -t -i:$PORT || true)
+                echo "🔍 Killing all Node.js processes..."
+                pkill -f "node" || true
 
-                if [ ! -z "$PID" ]; then
-                    echo "❌ Killing process using port $PORT (PID=$PID)"
-                    kill -9 $PID
-                else
-                    echo "✅ No existing process on port $PORT"
-                fi
-
-                echo "🎯 Starting app with nohup..."
+                echo "🎯 Starting app from current workspace..."
                 nohup npm start > $LOG_FILE 2>&1 &
+                sleep 3
                 echo "✅ App started in background. Log file: $LOG_FILE"
                 '''
             }
