@@ -26,8 +26,11 @@ model User {
   created_at     DateTime      @default(now())
   updated_at     DateTime      @updatedAt
   isStudent  Boolean @default(true) // 👈 add this line
+   // 🆕 optional field
+  roleInOrganization String?         // null allowed
 
   profile        UserProfile?
+  employerProfile   EmployerProfile?
   resumes        Resume[]
   js_languages   JS_languages[]   // 👈 Inverse relation added
   enrollment     Enrollment[]
@@ -229,3 +232,35 @@ enum OrderStatus {
   FAILED
 }
 
+//Employer prisma here-------------------------------------------
+
+enum CompanyType {
+  PRIVATE
+  PUBLIC
+  NONPROFIT
+  GOVERNMENT
+}
+
+
+model EmployerProfile {
+  id               Int       @id @default(autoincrement())
+  companyName      String
+  founderCEO       String?
+  overview         String?   @db.Text
+  website          String?
+  address          String?
+  gstNo            String?
+  regdNo           String?
+  estYear          Int?             // Year Founded
+  socialLinks      Json?
+   companyEmail     String?
+  companyPhone     String?
+  industrySector   String?
+  companyType      CompanyType?  // enum
+
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  userId           Int       @unique
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

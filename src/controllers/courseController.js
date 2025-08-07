@@ -3,6 +3,7 @@ const prisma = new PrismaClient();
 
 exports.enrollCourse = async (req, res) => {
     const { userId, courseId } = req.body;
+    console.log("enroll course check", req.body)
     try {
         await prisma.enrollment.create({
             data: { userId, courseId },

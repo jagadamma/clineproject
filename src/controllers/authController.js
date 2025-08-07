@@ -299,7 +299,7 @@ const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 // ✅ SIGNUP API (with profile_type logic)
 exports.signup = async (req, res) => {
     try {
-        const { first_name, last_name, email, phone, password, profile_type } = req.body;
+        const { first_name, last_name, email, phone, password, profile_type, roleInOrganization } = req.body;
 
         const existingUser = await prisma.user.findUnique({ where: { email } });
         if (existingUser) {
@@ -318,6 +318,7 @@ exports.signup = async (req, res) => {
                 phone,
                 password: hashed,
                 isStudent,
+                roleInOrganization: roleInOrganization || null // optional
             },
         });
 
