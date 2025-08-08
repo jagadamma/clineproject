@@ -29,16 +29,20 @@ pipeline {
             }
         }
 
-        stage('Force Start with PM2') {
+        stage('Start/Restart PM2 Process') {
             steps {
-                echo "🚀 Force starting app with PM2..."
+                echo "🚀 Starting or Restarting PM2..."
                 sh '''
-                    echo "🛑 Deleting existing PM2 process (if any)..."
-                    pm2 delete "$APP_NAME" || true
+                    # Check if PM2 process exists
+                    if pm2 describe "$APP_NAME" > /dev/null; then
+                        echo "🔁 PM2 process '$APP_NAME' found. Restarting..."
+                        pm2 restart "$APP_NAME"
+                    else
+                        echo "🚀 PM2 process '$APP_NAME' not found. Starting new..."
+                        pm2 start "$APP_SCRIPT" --name "$APP_NAME" --output "$LOG_FILE" --error "$LOG_FILE"
+                    fi
 
-                    echo "🚀 Starting app with PM2 (force)..."
-                    pm2 start "$APP_SCRIPT" --name "$APP_NAME" -f --output "$LOG_FILE" --error "$LOG_FILE"
-
+                    # Save and ensure startup on reboot
                     pm2 save
                     pm2 startup | tail -n 1 | bash || true
 
