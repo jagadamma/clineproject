@@ -9,7 +9,7 @@ pipeline {
         stage('Checkout Code') {
             steps {
                 dir("${APP_DIR}") {
-                    git branch: 'main', url: 'https://github.com/WebMobi-3/cliniAura-backend-project.git'
+                    git branch: 'main', credentialsId: 'gittoken', url: 'https://github.com/Webmobi360-Development/cliniAura-backend-project.git'
                 }
             }
         }
