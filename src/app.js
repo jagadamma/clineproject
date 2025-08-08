@@ -48,7 +48,7 @@ app.use('/api', courseLibraryRoutes);
 app.use('/api', employerRoutes);
 
 app.get("/", (req, res) => {
-    res.send("👋 warmest Welcome to cliniAura API");
+    res.send("👋 hello warmest Welcome to cliniAura API");
 });
 app.listen(3000, '0.0.0.0', () => {
     console.log("🚀 Server running on http://0.0.0.0:3000");
