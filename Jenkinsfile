@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         LOG_FILE = "${WORKSPACE}/output.log"
+        APP_NAME = "cliniAura-app"
         PORT = "3000"
     }
 
@@ -29,45 +30,39 @@ pipeline {
             }
         }
 
-        stage('Restart Node App in Background') {
+        stage('Install PM2') {
             steps {
-                echo "🚀 Restarting Node app..."
+                echo "🧰 Installing PM2..."
                 sh '''
-                    set -euo pipefail
-
-                    echo "🔍 Checking for existing process on port $PORT..."
-                    PID=$(lsof -ti tcp:$PORT || true)
-                    
-                    if [ -n "$PID" ]; then
-                        echo "❌ Killing old process on port $PORT (PID=$PID)..."
-                        kill -9 $PID || true
-                    fi
-
-                    echo "🗑️ Cleaning up old log file..."
-                    rm -f "$LOG_FILE"
-
-                    echo "🚀 Starting Node app in background..."
-                    cd /var/lib/jenkins/workspace/node/
-                    node src/app.js > "$LOG_FILE" 2>&1 & disown
-
-                   
-
-                  
-
-                    echo "📡 Checking app status..."
-                    if curl -s http://localhost:$PORT; then
-                        echo "✅ App started successfully!"
-                    else
-                        echo "⚠️ App did not respond. Check $LOG_FILE for details."
+                    if ! command -v pm2 >/dev/null 2>&1; then
+                        npm install -g pm2
                     fi
                 '''
             }
         }
-    }
 
-    post {
-        always {
-            echo "📦 Pipeline complete. App log: $LOG_FILE"
+        stage('Start App with PM2') {
+            steps {
+                echo "🚀 Starting Node.js app with PM2..."
+                sh '''
+                    # Stop and delete if already running
+                    if pm2 list | grep -q "$APP_NAME"; then
+                        echo "🔁 Restarting existing PM2 process..."
+                        pm2 delete "$APP_NAME"
+                    fi
+
+                    # Start the app with PM2
+                    pm2 start src/app.js --name "$APP_NAME" --output "$LOG_FILE" --error "$LOG_FILE"
+
+                    # Save process list (optional, for restart on reboot)
+                    pm2 save
+
+                    sleep 5
+
+                    # Test if app is running
+                    curl -s http://localhost:$PORT || echo "⚠️ App not responding yet"
+                '''
+            }
         }
     }
 }
