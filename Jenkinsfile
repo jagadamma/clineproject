@@ -13,8 +13,8 @@ pipeline {
             steps {
                 echo "📁 Preparing persistent app directory..."
                 sh '''
-                    mkdir -p "$APP_DIR"
-                    rm -rf "$APP_DIR"/*
+                   sudo mkdir -p "$APP_DIR"
+                   sudo rm -rf "$APP_DIR"/*
                 '''
             }
         }
