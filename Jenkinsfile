@@ -29,6 +29,7 @@ pipeline {
             steps {
                 sh 'npm install'
                 sh 'npx prisma generate'
+                sh 'npx prisma migrate deploy'
             }
         }
 
