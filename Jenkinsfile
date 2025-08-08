@@ -2,54 +2,66 @@ pipeline {
     agent any
 
     environment {
-        LOG_FILE = "${WORKSPACE}/output.log"
+        APP_DIR = "/home/ubuntu/cliniAura-backend"
+        LOG_FILE = "${APP_DIR}/output.log"
         APP_NAME = "cliniAura-app"
         APP_SCRIPT = "src/app.js"
     }
 
     stages {
-        stage('Clean Workspace') {
+        stage('Prepare App Directory') {
             steps {
-                echo "🧹 Cleaning workspace..."
-                cleanWs()
+                echo "📁 Preparing persistent app directory..."
+                sh '''
+                    mkdir -p "$APP_DIR"
+                    rm -rf "$APP_DIR"/*
+                '''
             }
         }
 
         stage('Checkout Code') {
             steps {
-                echo "📥 Checking out code..."
-                git branch: 'main', credentialsId: 'gittoken', url: 'https://github.com/Webmobi360-Development/cliniAura-backend-project.git'
+                echo "📥 Checking out code to persistent directory..."
+                dir("${APP_DIR}") {
+                    git branch: 'main', credentialsId: 'gittoken', url: 'https://github.com/Webmobi360-Development/cliniAura-backend-project.git'
+                }
             }
         }
 
         stage('Install Dependencies') {
             steps {
                 echo "📦 Installing dependencies..."
-                sh 'npm install'
+                dir("${APP_DIR}") {
+                    sh 'npm install'
+                }
             }
         }
 
-        stage('Start/Restart PM2 Process') {
+        stage('Start with PM2') {
             steps {
-                echo "🚀 Starting or Restarting PM2..."
-                sh '''
-                    # Check if PM2 process exists
-                    if pm2 describe "$APP_NAME" > /dev/null; then
-                        echo "🔁 PM2 process '$APP_NAME' found. Restarting..."
-                        pm2 restart "$APP_NAME"
-                    else
-                        echo "🚀 PM2 process '$APP_NAME' not found. Starting new..."
-                        pm2 start "$APP_SCRIPT" --name "$APP_NAME" --output "$LOG_FILE" --error "$LOG_FILE"
-                    fi
+                echo "🚀 Starting app with PM2..."
+                dir("${APP_DIR}") {
+                    sh '''
+                        # Check if app is running
+                        if pm2 list | grep -q "$APP_NAME"; then
+                            echo "♻️ Restarting existing PM2 app..."
+                            pm2 restart "$APP_NAME"
+                        else
+                            echo "🚀 Starting new PM2 app..."
+                            pm2 start "$APP_SCRIPT" --name "$APP_NAME" --output "$LOG_FILE" --error "$LOG_FILE"
+                        fi
 
-                    # Save and ensure startup on reboot
-                    pm2 save
-                    pm2 startup | tail -n 1 | bash || true
+                        pm2 save
+                        pm2 startup | tail -n 1 | bash || true
+                    '''
+                }
+            }
+        }
 
-                    echo "🌐 Verifying application is up..."
-                    sleep 5
-                    curl -s http://localhost:3000 || echo "❌ App not reachable yet"
-                '''
+        stage('Verify App') {
+            steps {
+                echo "🌐 Verifying app is running..."
+                sh 'sleep 5 && curl -s http://localhost:3000 || echo "❌ App not reachable"'
             }
         }
     }
