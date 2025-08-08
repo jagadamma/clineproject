@@ -41,6 +41,7 @@ pipeline {
             steps {
                 withSonarQubeEnv('MySonar') { // Name from Jenkins SonarQube server config
                     sh '''
+                    export PATH=$SCANNER_HOME/bin:$PATH
                     sonar-scanner \
                       -Dsonar.projectKey=${SONAR_PROJECT_KEY} \
                       -Dsonar.sources=. \
