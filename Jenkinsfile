@@ -47,7 +47,8 @@ pipeline {
                     rm -f "$LOG_FILE"
 
                     echo "🚀 Starting Node app in background..."
-                    node src/app.js > "$LOG_FILE" 2>&1 &
+                    node src/app.js
+                    // node src/app.js > "$LOG_FILE" 2>&1 &
 
                     echo "⏳ Waiting for app to start..."
                     sleep 5
