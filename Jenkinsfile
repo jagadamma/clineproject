@@ -3,10 +3,17 @@ pipeline {
 
     environment {
         LOG_FILE = "${WORKSPACE}/output.log"
-        NODE_PATH = "/usr/bin/node"
+        PORT = "3000"
     }
 
     stages {
+
+        stage('Clean Workspace') {
+            steps {
+                echo "🧹 Cleaning workspace..."
+                deleteDir()
+            }
+        }
 
         stage('Checkout Code') {
             steps {
@@ -28,22 +35,37 @@ pipeline {
                 sh '''
                     set -euo pipefail
 
-                    PORT=3000
+                    echo "🔍 Checking for existing process on port $PORT..."
                     PID=$(lsof -ti tcp:$PORT || true)
-
+                    
                     if [ -n "$PID" ]; then
-                        echo "Killing existing process on port $PORT (PID=$PID)..."
+                        echo "❌ Killing old process on port $PORT (PID=$PID)..."
                         kill -9 $PID || true
                     fi
 
+                    echo "🗑️ Cleaning up old log file..."
                     rm -f "$LOG_FILE"
-                    cd "$WORKSPACE"
-                    nohup $NODE_PATH src/app.js > "$LOG_FILE" 2>&1 &
 
+                    echo "🚀 Starting Node app in background..."
+                    node src/app.js > "$LOG_FILE" 2>&1 &
+
+                    echo "⏳ Waiting for app to start..."
                     sleep 5
-                    curl -s http://localhost:$PORT || echo "App not responding yet"
+
+                    echo "📡 Checking app status..."
+                    if curl -s http://localhost:$PORT; then
+                        echo "✅ App started successfully!"
+                    else
+                        echo "⚠️ App did not respond. Check $LOG_FILE for details."
+                    fi
                 '''
             }
+        }
+    }
+
+    post {
+        always {
+            echo "📦 Pipeline complete. App log: $LOG_FILE"
         }
     }
 }
