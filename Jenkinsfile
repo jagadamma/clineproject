@@ -22,15 +22,17 @@ pipeline {
             }
         }
 
-        stage('Start or Restart with PM2') {
+        stage('Start or Restart PM2') {
             steps {
                 dir("${APP_DIR}") {
                     script {
-                        def isRunning = sh(script: "pm2 list | grep -q app.js", returnStatus: true) == 0
+                        def isRunning = sh(script: "pm2 list | grep -q 'app.js'", returnStatus: true) == 0
                         if (isRunning) {
+                            echo "🔁 Restarting PM2 process..."
                             sh 'pm2 restart app.js'
                         } else {
-                            sh 'pm2 start src/app.js --name app.js'
+                            echo "🚀 Starting PM2 process..."
+                            sh 'pm2 start src/app.js --name app.js --output output.log --error error.log'
                         }
                     }
                 }
