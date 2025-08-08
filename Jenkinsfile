@@ -8,9 +8,9 @@ pipeline {
         SONAR_TOKEN = credentials('sonar-token') // Jenkins credential ID for SonarQube token
     }
 
-    tools {
-        sonarQubeScanner 'SonarScannerCLI' // Name from Jenkins Tools config
-    }
+    environment {
+          SCANNER_HOME = tool name: 'SonarScannerCLI', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+    } 
 
     stages {
         stage('Checkout Code') {
