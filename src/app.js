@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require("express");
 const { PrismaClient } = require("@prisma/client");
 const cors = require('cors');
@@ -12,9 +13,6 @@ const jobRoutes = require('./routes/jobRoutes');
 const jobUserRoutes = require('./routes/jobUserRoutes');
 const courseLibraryRoutes = require('./routes/courseLibraryRoutes');
 const employerRoutes = require('./routes/employer.routes');
-
-
-require("dotenv").config();
 
 const app = express();
 // ✅ Secure and domain-specific CORS config
