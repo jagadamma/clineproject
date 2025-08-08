@@ -25,7 +25,7 @@ pipeline {
                 echo "🚀 Starting Node.js app with PM2..."
                 sh '''
                     cd /var/lib/jenkins/workspace/
-                    rm -rf *  # deletes contents, not the directory itself
+                    // rm -rf *  # deletes contents, not the directory itself
 
                     if pm2 list | grep -q src/app.js; then
                         pm2 restart src/app.js --output "$LOG_FILE" --error "$LOG_FILE"
