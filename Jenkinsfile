@@ -6,10 +6,7 @@ pipeline {
         SONAR_PROJECT_KEY = "sonar-scanner"
         SONAR_HOST_URL = "http://localhost:9000" // Replace with your SonarQube URL
         SONAR_TOKEN = credentials('sonar-token') // Jenkins credential ID for SonarQube token
-    }
-
-    environment {
-          SCANNER_HOME = tool name: 'SonarScannerCLI', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+        SCANNER_HOME = tool name: 'SonarScannerCLI', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
     } 
 
     stages {
