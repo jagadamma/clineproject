@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        APP_DIR = "/home/ubuntu/cliniAura-backend"
+        APP_DIR = "/root/cliniAura-backend"
         LOG_FILE = "${APP_DIR}/output.log"
         APP_NAME = "cliniAura-app"
         APP_SCRIPT = "src/app.js"
