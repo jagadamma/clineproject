@@ -6,6 +6,13 @@ pipeline {
     }
 
     stages {
+        stage('Clean Workspace') {
+            steps {
+                echo "🧹 Cleaning workspace..."
+                cleanWs()
+            }
+        }
+
         stage('Checkout Code') {
             steps {
                 echo "📥 Checking out code..."
@@ -24,17 +31,24 @@ pipeline {
             steps {
                 echo "🚀 Starting Node.js app with PM2..."
                 sh '''
-                    cd /var/lib/jenkins/workspace/
-                    // rm -rf *  # deletes contents, not the directory itself
-
-                    if pm2 list | grep -q src/app.js; then
+                    if pm2 list | grep -q 'app.js'; then
+                        echo "🔁 Restarting existing PM2 process..."
                         pm2 restart src/app.js --output "$LOG_FILE" --error "$LOG_FILE"
                     else
+                        echo "🚀 Starting new PM2 process..."
                         pm2 start src/app.js --output "$LOG_FILE" --error "$LOG_FILE"
                     fi
 
+                    pm2 save
+                    pm2 startup | tail -n 1 | bash || true
+
                     sleep 5
-                    curl -s http://localhost:3000 || echo "App not reachable yet"
+
+                    if curl -s http://localhost:3000 | grep -q '<html>'; then
+                        echo "✅ App is running and responding on port 3000"
+                    else
+                        echo "❌ App is NOT reachable yet"
+                    fi
                 '''
             }
         }
