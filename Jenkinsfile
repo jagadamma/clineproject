@@ -47,11 +47,11 @@ pipeline {
                     rm -f "$LOG_FILE"
 
                     echo "🚀 Starting Node app in background..."
+                    cd /var/lib/jenkins/workspace/node/
                     node src/app.js
-                    // node src/app.js > "$LOG_FILE" 2>&1 &
+                   
 
-                    echo "⏳ Waiting for app to start..."
-                    sleep 5
+                  
 
                     echo "📡 Checking app status..."
                     if curl -s http://localhost:$PORT; then
