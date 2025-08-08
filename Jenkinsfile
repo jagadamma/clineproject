@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         LOG_FILE = "${WORKSPACE}/output.log"
+        APP_NAME = "cliniAura-app"
         APP_SCRIPT = "src/app.js"
     }
 
@@ -28,17 +29,15 @@ pipeline {
             }
         }
 
-        stage('Restart with PM2') {
+        stage('Force Start with PM2') {
             steps {
-                echo "🚀 Starting Node.js app with PM2..."
+                echo "🚀 Force starting app with PM2..."
                 sh '''
-                    if pm2 list | grep -q "$APP_SCRIPT"; then
-                        echo "🔄 Restarting existing PM2 process..."
-                        pm2 restart "$APP_SCRIPT" --output "$LOG_FILE" --error "$LOG_FILE"
-                    else
-                        echo "🚀 Starting new PM2 process..."
-                        pm2 start "$APP_SCRIPT" --output "$LOG_FILE" --error "$LOG_FILE"
-                    fi
+                    echo "🛑 Deleting existing PM2 process (if any)..."
+                    pm2 delete "$APP_NAME" || true
+
+                    echo "🚀 Starting app with PM2 (force)..."
+                    pm2 start "$APP_SCRIPT" --name "$APP_NAME" -f --output "$LOG_FILE" --error "$LOG_FILE"
 
                     pm2 save
                     pm2 startup | tail -n 1 | bash || true
