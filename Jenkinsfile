@@ -2,8 +2,7 @@ pipeline {
     agent any
 
     environment {
-        APP_NAME = "app.js"
-        SCRIPT_PATH = "src/app.js"
+        APP_NAME = "src/app.js"
     }
 
     stages {
@@ -21,16 +20,9 @@ pipeline {
             }
         }
 
-        stage('Start or Restart with PM2') {
+        stage('Restart App with PM2') {
             steps {
-                script {
-                    def isRunning = sh(script: "pm2 list | grep -q ${APP_NAME}", returnStatus: true) == 0
-                    if (isRunning) {
-                        sh "pm2 restart ${APP_NAME}"
-                    } else {
-                        sh "pm2 start ${SCRIPT_PATH} --name ${APP_NAME}"
-                    }
-                }
+                sh "pm2 restart ${APP_NAME}"
             }
         }
 
