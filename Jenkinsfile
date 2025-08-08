@@ -28,8 +28,9 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 sh 'npm install'
+                sh 'npx prisma migrate dev --name add-isStudent'
                 sh 'npx prisma generate'
-                sh 'npx prisma migrate deploy'
+                
             }
         }
 
