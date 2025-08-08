@@ -48,7 +48,8 @@ pipeline {
 
                     echo "🚀 Starting Node app in background..."
                     cd /var/lib/jenkins/workspace/node/
-                    node src/app.js > "$LOG_FILE" 2>&1 &
+                    node src/app.js > "$LOG_FILE" 2>&1 & disown
+
                    
 
                   
