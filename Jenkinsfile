@@ -2,66 +2,42 @@ pipeline {
     agent any
 
     environment {
-        APP_DIR = "/root/cliniAura-backend"
-        LOG_FILE = "${APP_DIR}/output.log"
-        APP_NAME = "cliniAura-app"
-        APP_SCRIPT = "src/app.js"
+        APP_DIR = "/home/ec2-user/cliniaura-app"
     }
 
     stages {
-        stage('Prepare App Directory') {
+        stage('Clone Repository') {
             steps {
-                echo "📁 Preparing persistent app directory..."
-                sh '''
-                   sudo mkdir -p "$APP_DIR"
-                   sudo rm -rf "$APP_DIR"/*
-                '''
-            }
-        }
-
-        stage('Checkout Code') {
-            steps {
-                echo "📥 Checking out code to persistent directory..."
                 dir("${APP_DIR}") {
-                    git branch: 'main', credentialsId: 'gittoken', url: 'https://github.com/Webmobi360-Development/cliniAura-backend-project.git'
+                    git url: 'https://github.com/WebMobi-3/cliniAura-backend-project.git', branch: 'main'
                 }
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                echo "📦 Installing dependencies..."
                 dir("${APP_DIR}") {
                     sh 'npm install'
                 }
             }
         }
 
-        stage('Start with PM2') {
+        stage('Start App with PM2') {
             steps {
-                echo "🚀 Starting app with PM2..."
                 dir("${APP_DIR}") {
-                    sh '''
-                        # Check if app is running
-                        if pm2 list | grep -q "$APP_NAME"; then
-                            echo "♻️ Restarting existing PM2 app..."
-                            pm2 restart "$APP_NAME"
-                        else
-                            echo "🚀 Starting new PM2 app..."
-                            pm2 start "$APP_SCRIPT" --name "$APP_NAME" --output "$LOG_FILE" --error "$LOG_FILE"
-                        fi
-
-                        pm2 save
-                        pm2 startup | tail -n 1 | bash || true
-                    '''
+                    // Check if app is already running
+                    script {
+                        def isRunning = sh(script: "pm2 list | grep app.js", returnStatus: true) == 0
+                        if (isRunning) {
+                            echo '🔁 Restarting existing PM2 process...'
+                            sh 'pm2 restart app.js'
+                        } else {
+                            echo '🚀 Starting new PM2 process...'
+                            sh 'pm2 start src/app.js --name cliniaura --cwd ${APP_DIR} --output output.log --error error.log'
+                        }
+                        sh 'pm2 save'
+                    }
                 }
-            }
-        }
-
-        stage('Verify App') {
-            steps {
-                echo "🌐 Verifying app is running..."
-                sh 'sleep 5 && curl -s http://localhost:3000 || echo "❌ App not reachable"'
             }
         }
     }
