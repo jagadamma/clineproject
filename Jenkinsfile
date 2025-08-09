@@ -56,7 +56,6 @@ pipeline {
                             -Dsonar.sources=src,prisma \
                             -Dsonar.inclusions=**/*.js,**/*.ts \
                             -Dsonar.lang.patterns.text=**/*.json \
-
                             -Dsonar.exclusions=**/node_modules/** \
                             -Dsonar.host.url=$SONAR_HOST_URL \
                             -Dsonar.login=$SONAR_TOKEN
