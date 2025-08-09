@@ -29,8 +29,16 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 sh 'npm install'
-                sh 'npx prisma migrate dev --name add-isStudent'
-                sh 'npx prisma generate'
+                sh '''
+                # Create migration SQL locally without applying to DB
+                npx prisma migrate dev --name add_is_student --create-only
+
+                # Mark migration as already applied in production DB
+                npx prisma migrate resolve --applied 20250808184244_add_is_student
+
+                # Generate Prisma client
+                npx prisma generate
+                '''
             }
         }
 
