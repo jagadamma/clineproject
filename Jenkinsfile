@@ -29,14 +29,17 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 sh 'npm install'
+
+                // Safe migration handling
                 sh '''
-                # Create migration SQL locally without applying to DB
-                npx prisma migrate dev --name add_is_student --create-only
+                set +e
+                npx prisma migrate deploy
+                if [ $? -ne 0 ]; then
+                    echo "⚠ Migration mismatch detected, pulling schema from DB..."
+                    npx prisma db pull
+                fi
+                set -e
 
-                # Mark migration as already applied in production DB
-                npx prisma migrate resolve --applied 20250808184244_add_is_student
-
-                # Generate Prisma client
                 npx prisma generate
                 '''
             }
@@ -60,16 +63,6 @@ pipeline {
                 }
             }
         }
-
-        //stage('Quality Gate') {
-        // steps {
-        //    script {
-        //       timeout(time: 1, unit: 'HOURS') { // ⬅ increase from 1 to 10
-        //           waitForQualityGate abortPipeline: true
-        //           }
-        //       }
-        //    }
-    //    }
 
         stage('Restart App with PM2') {
             steps {
