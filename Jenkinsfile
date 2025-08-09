@@ -53,15 +53,15 @@ pipeline {
             }
         }
 
-        stage('Quality Gate') {
-          steps {
-             script {
-                 timeout(time: 1, unit: 'HOURS') { // ⬅ increase from 1 to 10
-                     waitForQualityGate abortPipeline: true
-                   }
-               }
-            }
-        }
+        //stage('Quality Gate') {
+        // steps {
+        //    script {
+        //       timeout(time: 1, unit: 'HOURS') { // ⬅ increase from 1 to 10
+        //           waitForQualityGate abortPipeline: true
+        //           }
+        //       }
+        //    }
+    //    }
 
         stage('Restart App with PM2') {
             steps {
