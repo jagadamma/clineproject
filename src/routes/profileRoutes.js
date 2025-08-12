@@ -7,12 +7,6 @@ const validateRequest = require("../middlewares/validateRequest");
 
 router.get("/me", isAuthenticated, getProfile);
 
-router.post(
-    "/update",
-    isAuthenticated,
-    profileValidationRules,
-    validateRequest,
-    updateProfile
-);
+router.post("/update", isAuthenticated, profileValidationRules, validateRequest, updateProfile);
 
 module.exports = router;

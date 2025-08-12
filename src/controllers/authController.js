@@ -535,3 +535,95 @@ exports.googleCallback = async (req, res) => {
     }
 };
 
+
+// ✅ GET all signup users (admin)
+exports.getUsers = async (_req, res) => {
+    try {
+        const users = await prisma.user.findMany({
+            select: {
+                id: true,
+                first_name: true,
+                last_name: true,
+                email: true,
+                phone: true,
+                isStudent: true,
+                roleInOrganization: true,
+                created_at: true, // 👈 snake_case
+            },
+            orderBy: {
+                created_at: "desc", // 👈 snake_case
+            },
+        });
+
+        // (optional) response me camelCase chahiye to map kar do
+        const data = users.map(u => ({
+            ...u,
+            createdAt: u.created_at,
+            // updatedAt bhi chahiye to include in select & map similarly
+        }));
+
+        res.status(200).json({
+            message: "Users fetched successfully",
+            count: users.length,
+            data,
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+// ✅ GET user by ID
+exports.getUserById = async (req, res) => {
+    try {
+        const userId = Number(req.params.id);
+        if (!Number.isInteger(userId)) {
+            return res.status(400).json({ message: "Invalid user id" });
+        }
+
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                id: true,
+                first_name: true,
+                last_name: true,
+                email: true,
+                phone: true,
+                isStudent: true,
+                roleInOrganization: true,
+                created_at: true, // 👈 snake_case
+                // updated_at: true, // (agar chahiye)
+            },
+        });
+
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        // (optional) camelCase response
+        const out = {
+            ...user,
+            createdAt: user.created_at,
+            // updatedAt: user.updated_at,
+        };
+        delete out.created_at;
+        // delete out.updated_at;
+
+        res.status(200).json(out);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+
+

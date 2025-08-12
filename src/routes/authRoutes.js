@@ -8,6 +8,9 @@ router.post("/signup", signupValidationRules, validateRequest, authController.si
 router.post("/login", loginValidationRules, validateRequest, authController.login);
 router.post("/social-login", authController.socialLogin);
 
+// :white_check_mark: GET route for all users
+router.get("/users", authController.getUsers);
+router.get("/users/:id", authController.getUserById);
 
 // ✅ Google OAuth redirect callback (code-based login flow)
 router.get("/google/callback", authController.googleCallback);

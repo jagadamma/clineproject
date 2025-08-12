@@ -39,6 +39,9 @@ model User {
    savedJobs         SavedJob[] 
    orders         Order[]
    cartItems    Cart[]
+   educations       Education[]
+   projects         Project[]
+    workExperiences    WorkExperience[]
 }
 
 model UserProfile {
@@ -47,9 +50,9 @@ model UserProfile {
   about_me         String?
   preferred_role   String?
   key_skills       String?
-  education        String?  // JSON string
-  work_experience  String?  // JSON string
-  projects         String?
+  //education        String?  // JSON string
+  //work_experience  String?  // JSON string
+//  projects         String?
   address          String?
   city             String?
   pincode          String?
@@ -60,6 +63,66 @@ model UserProfile {
   profile_complete Boolean?
 
   user             User     @relation(fields: [user_id], references: [id])
+}
+
+
+model Education {
+  id              Int       @id @default(autoincrement())
+  userId          Int
+  courseDegree    String
+  specialization  String?
+  universityName  String
+  marks           String?        // keep free-form (%, CGPA, etc.)
+  startDate       DateTime       // use full date from your picker
+  endDate         DateTime?      // null if “Present”
+  isCurrent       Boolean @default(false)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user            User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, startDate])
+}
+
+
+model Project {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  title       String
+  status      String?     // e.g. Planned/In Progress/Completed
+  role        String?
+  skills      String?     // comma-separated or free text
+  description String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
+}
+
+
+
+model WorkExperience {
+  id               Int       @id @default(autoincrement())
+  userId           Int
+  company          String
+  location         String?
+  employmentType   String?      // e.g. Full-time, Contract, Intern
+  role             String?
+  startDate        DateTime
+  endDate          DateTime?
+  isCurrent        Boolean  @default(false) // if true, endDate will be null
+  responsibilities String?  @db.Text
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user             User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, startDate])
 }
 
 model Resume {
@@ -270,4 +333,32 @@ model EmployerProfile {
 
   userId           Int       @unique
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+
+
+
+//admin part----------------------------------------------------------------------
+
+
+enum AdminStatus {
+  ACTIVE
+  SUSPENDED
+  DISABLED
+}
+
+model Admin {
+  id          Int          @id @default(autoincrement())
+  fullName    String
+  email       String       @unique
+  password    String       // bcrypt hash
+  phone       String?      @unique
+  isSuper     Boolean      @default(false) // can manage other admins
+  status      AdminStatus  @default(ACTIVE)
+  lastLoginAt DateTime?
+  // granular permissions (future-proof)
+  scopes      Json?        // e.g. { "courses": ["read","write","delete"], "coupons":["read"] }
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
