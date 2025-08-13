@@ -67,13 +67,7 @@ pipeline {
 
         stage('Restart App with PM2') {
             steps {
-                 sh """
-            if pm2 list | grep -q "${APP_NAME}"; then
-                pm2 restart ${APP_NAME} --update-env
-            else
-                pm2 start ${APP_NAME} -f --update-env
-            fi
-        """
+                 sh "pm2 restart ${APP_NAME} --update-env"
            }
         }
         stage('Save PM2 State') {
