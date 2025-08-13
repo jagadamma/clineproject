@@ -68,7 +68,7 @@ pipeline {
         stage('Restart App with PM2') {
             steps {
                  sh "pm2 restart ${APP_NAME} --update-env"
-                 sh "service nginx restart"
+                 sh " sudo service nginx restart"
            }
         }
         stage('Save PM2 State') {
