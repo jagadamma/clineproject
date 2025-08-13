@@ -17,6 +17,7 @@ const employerRoutes = require('./routes/employer.routes');
 const educationRoutes = require('./routes/education.routes');
 const projectRoutes = require('./routes/project.routes');
 const workExpRoutes = require('./routes/workExperience.routes');
+const userDataFullRoutes = require("./routes/userDataFullRoutes");
 
 // NEW: Admin-only (separate Admin table, no relation to User)
 // const adminAuthRoutes = require('././routes/AdminRoute/admin.auth.routes');      // /login, /me
@@ -57,6 +58,9 @@ app.use('/api', courseLibraryRoutes);
 app.use('/apiEducation', educationRoutes);
 app.use('/apiProject', projectRoutes);
 app.use('/apiExp', workExpRoutes);
+
+//view full user data-----
+app.use("/apiView", userDataFullRoutes);
 
 
 //employer route here-------
