@@ -35,7 +35,9 @@ model User {
   js_languages   JS_languages[]   // 👈 Inverse relation added
   enrollment     Enrollment[]
   lessonProgress  LessonProgress[]
-  jobApplication   JobApplication[]
+  jobPostings  JobPosting[]
+   candidateStatuses CandidateStatus[]
+   jobApplication   JobApplication[]
    savedJobs         SavedJob[] 
    orders         Order[]
    cartItems    Cart[]
@@ -215,7 +217,19 @@ model LessonProgress {
 
   @@unique([userId, lessonId])
 }
-
+model CandidateStatus {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  jobId     Int
+  status    String   @default("NEUTRAL") // SHORTLISTED, REJECTED, HIRED
+  taggedBy  Int?     // Employer's userId
+  updatedAt DateTime @updatedAt
+  jobApplicationId  Int
+  user      User       @relation(fields: [userId], references: [id])
+  job       JobPosting @relation(fields: [jobId], references: [id])
+  @@unique([userId, jobId]) // unique per user-job combination
+  jobApplication    JobApplication  @relation(fields: [jobApplicationId], references: [id])
+}
 model JobPosting {
   id             Int      @id @default(autoincrement())
   title          String
@@ -240,37 +254,35 @@ model JobPosting {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   jobApplication  JobApplication[]
-   savedByUsers     SavedJob[]
+  savedByUsers     SavedJob[]
+  userId         Int
+  candidateStatuses CandidateStatus[]
+  user           User      @relation(fields: [userId], references: [id])
 }
-
 enum WorkMode {
   REMOTE
   ONSITE
   HYBRID
 }
-
 model JobApplication {
   id        Int      @id @default(autoincrement())
   userId    Int
   jobId     Int
   status    String   // e.g. "Applied", "Reviewed", etc.
   appliedAt DateTime @default(now())
-
   user      User     @relation(fields: [userId], references: [id])
   job       JobPosting @relation(fields: [jobId], references: [id])
-  @@unique([userId, jobId]) 
+  candidateStatus CandidateStatus[]
+  @@unique([userId, jobId])
 }
-
 model SavedJob {
   id      Int         @id @default(autoincrement())
   userId  Int
   jobId   Int
   user    User        @relation(fields: [userId], references: [id])
   job     JobPosting  @relation(fields: [jobId], references: [id])
-  
   @@unique([userId, jobId])
 }
-
 
 model Cart {
   id        Int      @id @default(autoincrement())
