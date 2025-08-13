@@ -231,34 +231,38 @@ model CandidateStatus {
   jobApplication    JobApplication  @relation(fields: [jobApplicationId], references: [id])
 }
 model JobPosting {
-  id             Int      @id @default(autoincrement())
-  title          String
-  description    String   @db.Text
-  location       String
-  workMode       WorkMode
-  experienceMin  Int
-  experienceMax  Int
-  salaryMin      Int
-  salaryMax      Int
-  companyName    String
-  companyLogo    String? // optional URL
-  applyLink      String
-  Requirements   String
-  Skills         String
-  Qualification  String
+  id                Int       @id @default(autoincrement())
+  title             String
+  description       String    @db.Text
+  location          String
+  workMode          WorkMode
+  experienceMin     Int
+  experienceMax     Int
+  salaryMin         Int
+  salaryMax         Int
+  companyName       String
+  companyLogo       String?        // optional URL
+  applyLink         String
+  Requirements      String
+  Skills            String
+  Qualification     String
   TotalNoCandidates String
-  Notice         String
-  Deadline      String
-  CreatedBy     String
-  postedAt       DateTime @default(now())
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  jobApplication  JobApplication[]
-  savedByUsers     SavedJob[]
-  userId         Int
+  Notice            String
+  Deadline          String
+  CreatedBy         String?        // 👈 optional now
+  postedAt          DateTime @default(now())
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // NEW: user link (nullable first to avoid migration errors on existing rows)
+  userId            Int?
+  user              User?      @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  jobApplication    JobApplication[]
+  savedByUsers      SavedJob[]
   candidateStatuses CandidateStatus[]
-  user           User      @relation(fields: [userId], references: [id])
 }
+
 enum WorkMode {
   REMOTE
   ONSITE

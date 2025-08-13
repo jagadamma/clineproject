@@ -125,101 +125,212 @@
 // controllers/jobController.js
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
-// :white_check_mark: Create Job (Employer only)
+
+/* ---------- helpers ---------- */
+
+// Prefer JWT -> req.user.id; fallback: body/query userId
+function getAuthUserId(req) {
+    const raw = req.user?.id ?? req.body?.userId ?? req.query?.userId;
+    const n = Number(raw);
+    return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+// Normalize incoming body
+function normalizeJobPayload(body = {}) {
+    const out = { ...body };
+
+    // Trim string-ish fields; empty string -> null
+    [
+        "title",
+        "description",
+        "location",
+        "companyName",
+        "companyLogo",
+        "applyLink",
+        "Requirements",
+        "Skills",
+        "Qualification",
+        "TotalNoCandidates",
+        "Notice",
+        "Deadline",
+        "CreatedBy",
+    ].forEach((k) => {
+        if (out[k] !== undefined && out[k] !== null) {
+            out[k] = String(out[k]).trim();
+            if (out[k] === "") out[k] = null;
+        }
+    });
+
+    // workMode as enum UPPERCASE (REMOTE/HYBRID/ONSITE - whatever you defined)
+    if (out.workMode) out.workMode = String(out.workMode).toUpperCase();
+
+    // Numbers
+    ["experienceMin", "experienceMax", "salaryMin", "salaryMax"].forEach((k) => {
+        if (out[k] !== undefined && out[k] !== null) {
+            const n = Number(out[k]);
+            out[k] = Number.isFinite(n) ? n : null;
+        }
+    });
+
+    // Ensure applyLink has scheme
+    if (out.applyLink && !/^https?:\/\//i.test(out.applyLink)) {
+        out.applyLink = `https://${out.applyLink}`;
+    }
+
+    return out;
+}
+
+function prismaError(res, err) {
+    console.error("Job controller error:", err);
+    const code = err?.code;
+    const status =
+        code === "P2002" ? 409 : // unique
+            code === "P2003" ? 400 : // FK
+                500;
+    const message =
+        code === "P2002"
+            ? "Unique constraint failed"
+            : code === "P2003"
+                ? "Invalid reference (foreign key)"
+                : err?.message || "Server error";
+    return res.status(status).json({ message, code, meta: err?.meta });
+}
+
+/* ---------- Create Job (Employer only) ---------- */
 exports.createJob = async (req, res) => {
     try {
-        if (req.user.isStudent) {
+        // Must be employer (not student)
+        if (req.user?.isStudent) {
             return res.status(403).json({ message: "Only employers can post jobs" });
         }
-        const {
-            title, description, location, workMode,
-            experienceMin, experienceMax, salaryMin, salaryMax,
-            companyName, Requirements, Skills, Qualification, applyLink, TotalNoCandidates, Notice, Deadline, CreatedBy
-        } = req.body;
+
+        const userId = getAuthUserId(req);
+        if (userId == null) {
+            return res.status(400).json({ message: "userId missing/invalid" });
+        }
+
+        // Clean payload
+        const payload = normalizeJobPayload(req.body);
+
+        // Minimal required fields check (adjust as per your needs)
+        const required = ["title", "description", "location", "workMode", "companyName", "applyLink"];
+        const missing = required.filter((k) => !payload[k]);
+        if (missing.length) {
+            return res.status(400).json({ message: `Missing fields: ${missing.join(", ")}` });
+        }
+
+        // CreatedBy optional already handled by normalizer (null if empty)
         const job = await prisma.jobPosting.create({
             data: {
-                title,
-                description,
-                location,
-                workMode,
-                experienceMin,
-                experienceMax,
-                salaryMin,
-                salaryMax,
-                companyName,
-                Requirements,
-                Skills,
-                Qualification,
-                applyLink,
-                TotalNoCandidates,
-                Notice,
-                Deadline,
-                CreatedBy,
-                userId: req.user.id
-            }
+                ...payload,
+                userId, // Int (nullable in schema is fine; but here we set it)
+            },
         });
-        res.status(201).json({ message: "Job created", job });
+
+        return res.status(201).json({ message: "Job created", job });
     } catch (err) {
-        res.status(500).json({ message: "Server error", error: err.message });
+        return prismaError(res, err);
     }
 };
-// :white_check_mark: Update Job
+
+/* ---------- Update Job ---------- */
 exports.updateJob = async (req, res) => {
     try {
-        const job = await prisma.jobPosting.findUnique({ where: { id: Number(req.params.id) } });
+        const userId = getAuthUserId(req);
+        if (userId == null) {
+            return res.status(400).json({ message: "userId missing/invalid" });
+        }
+        if (req.user?.isStudent) {
+            return res.status(403).json({ message: "Only employers can update jobs" });
+        }
+
+        const id = Number(req.params.id);
+        if (!Number.isFinite(id)) return res.status(400).json({ message: "Invalid job id" });
+
+        const job = await prisma.jobPosting.findUnique({ where: { id } });
         if (!job) return res.status(404).json({ message: "Job not found" });
-        if (job.userId !== req.user.id) return res.status(403).json({ message: "Not your job" });
+
+        if (job.userId !== userId) {
+            return res.status(403).json({ message: "Not your job" });
+        }
+
+        // Prevent userId tampering & normalize rest
+        const { userId: _ignore, ...rest } = req.body || {};
+        const data = normalizeJobPayload(rest);
+
         const updated = await prisma.jobPosting.update({
-            where: { id: job.id },
-            data: req.body
+            where: { id },
+            data,
         });
-        res.json({ message: "Job updated", job: updated });
+
+        return res.json({ message: "Job updated", job: updated });
     } catch (err) {
-        res.status(500).json({ message: "Server error", error: err.message });
+        return prismaError(res, err);
     }
 };
-// :white_check_mark: Delete Job
+
+/* ---------- Delete Job ---------- */
 exports.deleteJob = async (req, res) => {
     try {
-        const job = await prisma.jobPosting.findUnique({ where: { id: Number(req.params.id) } });
+        const userId = getAuthUserId(req);
+        if (userId == null) {
+            return res.status(400).json({ message: "userId missing/invalid" });
+        }
+        if (req.user?.isStudent) {
+            return res.status(403).json({ message: "Only employers can delete jobs" });
+        }
+
+        const id = Number(req.params.id);
+        if (!Number.isFinite(id)) return res.status(400).json({ message: "Invalid job id" });
+
+        const job = await prisma.jobPosting.findUnique({ where: { id } });
         if (!job) return res.status(404).json({ message: "Job not found" });
-        if (job.userId !== req.user.id) return res.status(403).json({ message: "Not your job" });
-        await prisma.jobPosting.delete({ where: { id: job.id } });
-        res.json({ message: "Job deleted" });
+
+        if (job.userId !== userId) {
+            return res.status(403).json({ message: "Not your job" });
+        }
+
+        await prisma.jobPosting.delete({ where: { id } });
+        return res.json({ message: "Job deleted" });
     } catch (err) {
-        res.status(500).json({ message: "Server error", error: err.message });
+        return prismaError(res, err);
     }
 };
-// :white_check_mark: Get All Jobs (For students)
+
+/* ---------- Get All Jobs (students) ---------- */
 exports.getAllJobs = async (req, res) => {
     try {
         const jobs = await prisma.jobPosting.findMany({
+            orderBy: { createdAt: "desc" },
             include: {
-                user: { select: { first_name: true, last_name: true, email: true } }
-            }
+                user: { select: { first_name: true, last_name: true, email: true } },
+            },
         });
-        res.json(jobs);
+        return res.json(jobs);
     } catch (err) {
-        res.status(500).json({ message: "Server error", error: err.message });
+        return prismaError(res, err);
     }
 };
-// :white_check_mark: Employer Dashboard (My Jobs + Applicants list)
+
+/* ---------- Employer Dashboard: My Jobs + Applicants ---------- */
 exports.getEmployerJobsWithApplicants = async (req, res) => {
     try {
+        const userId = getAuthUserId(req);
+        if (userId == null) return res.status(400).json({ message: "userId missing/invalid" });
+
         const jobs = await prisma.jobPosting.findMany({
-            where: { userId: req.user.id },
+            where: { userId },
+            orderBy: { createdAt: "desc" },
             include: {
                 jobApplication: {
                     include: {
-                        user: {
-                            select: { id: true, first_name: true, last_name: true, email: true }
-                        }
-                    }
-                }
-            }
+                        user: { select: { id: true, first_name: true, last_name: true, email: true } },
+                    },
+                },
+            },
         });
-        res.json(jobs);
+        return res.json(jobs);
     } catch (err) {
-        res.status(500).json({ message: "Server error", error: err.message });
+        return prismaError(res, err);
     }
 };
