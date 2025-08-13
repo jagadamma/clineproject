@@ -74,8 +74,8 @@ pipeline {
                 pm2 start ${APP_NAME}
             fi
         """
+           }
         }
-
         stage('Save PM2 State') {
             steps {
                 sh 'pm2 save'
