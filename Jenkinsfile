@@ -69,7 +69,7 @@ pipeline {
             steps {
                  sh """
             if pm2 list | grep -q "${APP_NAME}"; then
-                pm2 restart ${APP_NAME} --update-env"
+                pm2 restart ${APP_NAME} --update-env
             else
                 pm2 start ${APP_NAME}
             fi
