@@ -36,7 +36,7 @@ pipeline {
                 npx prisma migrate deploy
                 if [ $? -ne 0 ]; then
                     echo "⚠ Migration mismatch detected, pulling schema from DB..."
-                    npx prisma db pull
+                    npx prisma db push
                 fi
                 set -e
 
