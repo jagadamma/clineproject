@@ -27,7 +27,6 @@ const certificateRoutes = require("./routes/certificateRoutes")
 // const adminAuthRoutes = require('././routes/AdminRoute/admin.auth.routes');      // /login, /me
 // const adminManageRoutes = require('././routes/AdminRoute/admin.manage.routes');  // CRUD admins, etc.
 
-
 const app = express();
 // ✅ Secure and domain-specific CORS config
 const corsOptions = {
