@@ -20,7 +20,7 @@ const workExpRoutes = require('./routes/workExperience.routes');
 const userDataFullRoutes = require("./routes/userDataFullRoutes");
 // const profilePicRoutes = require('./routes/profilePic.routes');
 const employerRoutesAplicant = require("./routes/employerRoutes");
-const certificateRoutes = require("./routes/certificateRoutes")
+// const certificateRoutes = require("./routes/certificateRoutes")
 
 
 // NEW: Admin-only (separate Admin table, no relation to User)
@@ -61,7 +61,7 @@ app.use('/api', courseLibraryRoutes);
 app.use('/apiEducation', educationRoutes);
 app.use('/apiProject', projectRoutes);
 app.use('/apiExp', workExpRoutes);
-app.use('/api/certificates', certificateRoutes);
+// app.use('/api/certificates', certificateRoutes);
 
 
 //view full user data-----
