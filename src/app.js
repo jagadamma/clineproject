@@ -18,6 +18,10 @@ const educationRoutes = require('./routes/education.routes');
 const projectRoutes = require('./routes/project.routes');
 const workExpRoutes = require('./routes/workExperience.routes');
 const userDataFullRoutes = require("./routes/userDataFullRoutes");
+// const profilePicRoutes = require('./routes/profilePic.routes');
+const employerRoutesAplicant = require("./routes/employerRoutes");
+const certificateRoutes = require("./routes/certificateRoutes")
+
 
 // NEW: Admin-only (separate Admin table, no relation to User)
 // const adminAuthRoutes = require('././routes/AdminRoute/admin.auth.routes');      // /login, /me
@@ -58,6 +62,8 @@ app.use('/api', courseLibraryRoutes);
 app.use('/apiEducation', educationRoutes);
 app.use('/apiProject', projectRoutes);
 app.use('/apiExp', workExpRoutes);
+app.use('/api/certificates', certificateRoutes);
+
 
 //view full user data-----
 app.use("/apiView", userDataFullRoutes);
@@ -65,6 +71,11 @@ app.use("/apiView", userDataFullRoutes);
 
 //employer route here-------
 app.use('/api', employerRoutes);
+
+//profile pic------------
+// app.use('/api', profilePicRoutes);
+
+app.use('/api/emp/application', employerRoutesAplicant);
 
 
 // 🔐 Admin namespace (totally separate from normal users)

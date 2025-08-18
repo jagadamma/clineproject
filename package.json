@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/WebMobi-3/cliniAura-backend-project#readme",
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.864.0",
     "@prisma/client": "^6.13.0",
     "axios": "^1.11.0",
     "bcrypt": "^6.0.0",
@@ -33,6 +34,7 @@
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
+    "multer-s3": "^3.0.1",
     "mysql2": "^3.14.3",
     "prisma": "^6.13.0",
     "winston": "^3.17.0"
