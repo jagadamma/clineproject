@@ -5,7 +5,8 @@
   "scripts": {
     "start": "node src/app.js",
     "seed": "node prisma/seed.js",
-    "Userseed": "node prisma/Userseed.js"
+    "Userseed": "node prisma/Userseed.js",
+    "Seed:super": "node src/Seed/seedSuperAdmin.js"
   },
   "repository": {
     "type": "git",

@@ -24,8 +24,8 @@ const employerRoutesAplicant = require("./routes/employerRoutes");
 
 
 // NEW: Admin-only (separate Admin table, no relation to User)
-// const adminAuthRoutes = require('././routes/AdminRoute/admin.auth.routes');      // /login, /me
-// const adminManageRoutes = require('././routes/AdminRoute/admin.manage.routes');  // CRUD admins, etc.
+const adminAuthRoutes = require('././routes/AdminRoute/admin.auth.routes');      // /login, /me
+const adminManageRoutes = require('././routes/AdminRoute/admin.manage.routes');  // CRUD admins, etc.
 
 const app = express();
 // ✅ Secure and domain-specific CORS config
@@ -78,8 +78,8 @@ app.use('/api/emp/application', employerRoutesAplicant);
 
 
 // 🔐 Admin namespace (totally separate from normal users)
-// app.use('/api/admin/auth', adminAuthRoutes); // POST /login, GET /me
-// app.use('/api/admin', adminManageRoutes);    // requires admin auth
+app.use('/api/admin/auth', adminAuthRoutes); // POST /login, GET /me
+app.use('/api/admin', adminManageRoutes);    // requires admin auth
 
 app.get("/", (req, res) => {
     res.send("👋🙋Hi & WARM Welcome everyone to cliniAura API");
