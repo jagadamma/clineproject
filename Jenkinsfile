@@ -19,12 +19,12 @@ pipeline {
         stage('Create .env File') {
             steps {
                 sh '''
-                echo 'DATABASE_URL="mysql://Cliniaura:CA%232025%2308@cliniaura.cgda62628ccx.us-east-1.rds.amazonaws.com:3306/CliniAura"' > .env
-                echo 'JWT_SECRET=cliniauraSuperSecretKey@2025' >> .env
-                echo 'TOKEN_EXPIRE=7d' >> .env
-                echo 'ADMIN_JWT_SECRET="super_strong_random_secret">>.env
-                echo 'ADMIN_JWT_EXPIRES_IN="1d" >> .env
-                '''
+                        echo 'DATABASE_URL="mysql://Cliniaura:CA%232025%2308@cliniaura.cgda62628ccx.us-east-1.rds.amazonaws.com:3306/CliniAura"' > .env
+                        echo 'JWT_SECRET=cliniauraSuperSecretKey@2025' >> .env
+                        echo 'TOKEN_EXPIRE=7d' >> .env
+                        echo 'ADMIN_JWT_SECRET=super_strong_random_secret' >> .env
+                        echo 'ADMIN_JWT_EXPIRES_IN=1d' >> .env
+                    '''
             }
         }
 
