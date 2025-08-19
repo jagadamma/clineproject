@@ -20,6 +20,8 @@ jobs:
       - name: Install Dependencies
         run: |
           npm install
+          sudo npm install -g pm2
+
           set +e
           npx prisma migrate deploy
           if [ $? -ne 0 ]; then
@@ -30,5 +32,6 @@ jobs:
           npx prisma generate
 
       # Save PM2 state
-      - name: Save PM2 State
-        run: pm2 save
+      - name: PM2 Start
+        run: pm2 start
+      
