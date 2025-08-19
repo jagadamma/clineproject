@@ -20,7 +20,7 @@ jobs:
       - name: Install Dependencies
         run: |
           npm install
-          npm install pm2 --save-dev
+          npm install pm2 --save-dev --no-fund --no-audit   # install locally only
 
           set +e
           npx prisma migrate deploy
@@ -31,10 +31,10 @@ jobs:
           set -e
           npx prisma generate
 
-      # Start app with PM2 (local binary via npx)
+      # Start app with PM2 (from local node_modules)
       - name: PM2 Start
-        run: npx pm2 start ecosystem.config.js || npx pm2 start src/app.js --name myapp
+        run: npx pm2 start src/app.js --name myapp
 
-      # Save PM2 process list (so it survives restart)
+      # Save PM2 process list
       - name: PM2 Save
         run: npx pm2 save
