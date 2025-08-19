@@ -10,24 +10,20 @@ jobs:
     runs-on: self-hosted   # GCP VM runner
 
     steps:
-      # Ensure we’re in the correct project directory
-      - name: Sync Code to App Directory
-        run: |
-          cd /root/app/cliniAura-backend-project
-          git fetch origin main
-          git reset --hard origin/main
+      # Checkout private repo
+      - name: Checkout Code
+        uses: actions/checkout@v3
+        with:
+          ref: main
+          path: /home/kibutzuji123/app/cliniAura-backend-project   # ✅ checkout directly to safe path
 
-      # Install dependencies
+      # Install dependencies + Prisma migrations
       - name: Install Dependencies
+        working-directory: /home/kibutzuji123/app/cliniAura-backend-project
         run: |
-          cd /root/app/cliniAura-backend-project
           npm install
-          npm install pm2 --save-dev
+          npm install pm2 --save-dev   # ✅ local pm2 install, no sudo needed
 
-      # Prisma migrate
-      - name: Run Prisma Migration
-        run: |
-          cd /root/app/cliniAura-backend-project
           set +e
           npx prisma migrate deploy
           if [ $? -ne 0 ]; then
@@ -37,12 +33,10 @@ jobs:
           set -e
           npx prisma generate
 
-      # Restart or Start app with PM2
-      - name: Restart App with PM2
+      # Restart app with PM2 (ensures updates reflect)
+      - name: PM2 Restart
+        working-directory: /home/kibutzuji123/app/cliniAura-backend-project
         run: |
-          cd /root/app/cliniAura-backend-project
-          npx pm2 restart myapp || npx pm2 start src/app.js --name myapp
-
-      # Save PM2 process list
-      - name: Save PM2 State
-        run: npx pm2 save
+          npx pm2 delete myapp || true   # ✅ remove old process if exists
+          npx pm2 start src/app.js --name myapp
+          npx pm2 save
