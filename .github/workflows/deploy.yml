@@ -9,7 +9,7 @@ jobs:
   deploy:
     runs-on: self-hosted   # GCP VM runner
 
-   
+    steps:
       # Checkout private repo
       - name: Checkout Code
         uses: actions/checkout@v3
