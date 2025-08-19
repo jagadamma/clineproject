@@ -40,7 +40,7 @@ jobs:
         run: |
           if npx pm2 describe myapp1 > /dev/null; then
             echo "🔄 Restarting existing PM2 process..."
-            npx pm2 restart myapp1
+            npx pm2 restart src/app.js --name myapp1
           else
             echo "🚀 Starting new PM2 process..."
             npx pm2 start src/app.js --name myapp1
