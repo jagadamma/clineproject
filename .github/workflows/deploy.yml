@@ -34,10 +34,10 @@ jobs:
           set -e
           npx prisma generate
 
-      # Restart or Start app with PM2
       - name: PM2 Restart or Start
         working-directory: ${{ env.APP_DIR }}
-        run: |  
-          npx pm2 start src/app.js --name myapp1
-
+        run: |
+          npx pm2 delete myapp1 || true
+          npx pm2 start src/app.js --name myapp1 --update-env
           npx pm2 save
+          npx pm2 list
