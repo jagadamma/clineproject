@@ -82,7 +82,7 @@ app.use('/api/admin/auth', adminAuthRoutes); // POST /login, GET /me
 app.use('/api/admin', adminManageRoutes);    // requires admin auth
 
 app.get("/", (req, res) => {
-    res.send("👋🙋Hi & WARM Welcome everyone to cliniAura API");
+    res.send("👋 Welcome all to cliniAura API");
 });
 app.listen(3000, '0.0.0.0', () => {
     console.log("🚀 Server running on http://0.0.0.0:3000");
