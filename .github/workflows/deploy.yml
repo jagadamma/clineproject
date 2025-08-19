@@ -9,6 +9,9 @@ jobs:
   deploy:
     runs-on: self-hosted   # GCP VM runner
 
+    env:
+      APP_DIR: /home/kibutzuji123/actions-runner/_work/clineproject/clineproject
+
     steps:
       # Checkout private repo (default _work path)
       - name: Checkout Code
@@ -17,9 +20,10 @@ jobs:
           ref: main
 
       # Install dependencies + Prisma migrations
-      - name: Install Dependencies
-        working-directory: ${{ github.workspace }}
+      - name: Install Dependencies & Run Migrations
+        working-directory: ${{ env.APP_DIR }}
         run: |
+          npm install
 
           set +e
           npx prisma migrate deploy
@@ -30,9 +34,15 @@ jobs:
           set -e
           npx prisma generate
 
-      # Restart app with PM2
-      - name: PM2 Restart
-        working-directory: ${{ github.workspace }}
+      # Restart or Start app with PM2
+      - name: PM2 Restart or Start
+        working-directory: ${{ env.APP_DIR }}
         run: |
-          npx pm2 restart /home/kibutzuji123/actions-runner/_work/clineproject/clineproject/src/app.js --name myapp1
+          if npx pm2 describe myapp1 > /dev/null; then
+            echo "🔄 Restarting existing PM2 process..."
+            npx pm2 restart myapp1
+          else
+            echo "🚀 Starting new PM2 process..."
+            npx pm2 start src/app.js --name myapp1
+          fi
           npx pm2 save
