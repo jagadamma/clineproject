@@ -34,8 +34,8 @@ jobs:
 
       # Start app with PM2 (from local node_modules)
       - name: PM2 Start 
-        run:  pm2 start src/app.js --name myapp
+        run:  npx pm2 start src/app.js --name myapp
 
       # Save PM2 process list
       - name: PM2 Save
-        run: npm pm2 save
+        run: npx pm2 save
