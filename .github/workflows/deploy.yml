@@ -40,4 +40,3 @@ jobs:
           npx pm2 delete myapp1 || true
           npx pm2 start src/app.js --name myapp1 --update-env
           npx pm2 save
-          npx pm2 list
