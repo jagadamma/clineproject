@@ -19,8 +19,8 @@ jobs:
       # Install dependencies + Prisma migrations
       - name: Install Dependencies
         run: |
-          npm install
-          npm install -g pm2
+          sudo npm install
+          sudo npm install -g pm2
 
           set +e
           npx prisma migrate deploy
