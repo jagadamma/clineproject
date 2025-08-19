@@ -20,8 +20,6 @@ jobs:
       - name: Install Dependencies
         working-directory: ${{ github.workspace }}
         run: |
-          npm install
-          npm install pm2 --save-dev   # local pm2 install
 
           set +e
           npx prisma migrate deploy
@@ -37,5 +35,5 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
           npx pm2 delete myapp || true
-          npx pm2 start src/app.js --name myapp
+          npx pm2 restart src/app.js --name myapp1
           npx pm2 save
