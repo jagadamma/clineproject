@@ -34,5 +34,5 @@ jobs:
       - name: PM2 Restart
         working-directory: ${{ github.workspace }}
         run: |
-          npx pm2 restart src/app.js --name myapp1
+          npx pm2 restart /home/kibutzuji123/actions-runner/_work/clineproject/clineproject/src/app.js --name myapp1
           npx pm2 save
