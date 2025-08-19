@@ -31,7 +31,10 @@ jobs:
           set -e
           npx prisma generate
 
-      # Save PM2 state
+      # Start app with PM2 (local binary via npx)
       - name: PM2 Start
-        run: pm2 start
-      
+        run: npx pm2 start ecosystem.config.js || npx pm2 start src/app.js --name myapp
+
+      # Save PM2 process list (so it survives restart)
+      - name: PM2 Save
+        run: npx pm2 save
