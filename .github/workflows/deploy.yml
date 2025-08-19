@@ -38,5 +38,5 @@ jobs:
       - name: PM2 Restart or Start
         working-directory: ${{ env.APP_DIR }}
         run: |  
-          npx pm2 restart src/app.js         
+          npx pm2 restart myapp1 --update-env
           npx pm2 save
