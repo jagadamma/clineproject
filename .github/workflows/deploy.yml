@@ -10,7 +10,7 @@ jobs:
     runs-on: self-hosted   # GCP VM runner
 
     env:
-      APP_DIR: /home/kibutzuji123/actions-runner/_work/clineproject/clineproject
+      APP_DIR: /home/kibutzuji123/actions-runner/_work/clineproject/clineproject/
 
     steps:
       # Checkout private repo (default _work path)
@@ -37,6 +37,6 @@ jobs:
       - name: PM2 Restart or Start
         working-directory: ${{ env.APP_DIR }}
         run: |
-          npx pm2 restart app --update-env || npx pm2 start src/app.js --name app --update-env
+          npx pm2 restart app --update-env
           npx pm2 save
-          service nginx restart
+          sudo service nginx restart
