@@ -20,8 +20,7 @@ jobs:
       - name: Install Dependencies
         run: |
           npm install
-          npm install -g pm2
-
+          npm install pm2 --save-dev   # ✅ local pm2 install, no sudo needed
 
           set +e
           npx prisma migrate deploy
@@ -32,9 +31,9 @@ jobs:
           set -e
           npx prisma generate
 
-      # Start app with PM2 (from local node_modules)
+      # Start app with PM2 (using npx, no global install)
       - name: PM2 Start 
-        run:  npx pm2 start src/app.js --name myapp
+        run: npx pm2 start src/app.js --name myapp
 
       # Save PM2 process list
       - name: PM2 Save
