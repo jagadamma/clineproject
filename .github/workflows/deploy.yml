@@ -34,6 +34,6 @@ jobs:
       - name: PM2 Restart
         working-directory: ${{ github.workspace }}
         run: |
-          npx pm2 delete myapp || true
+          npx pm2 delete myapp1 || true
           npx pm2 restart src/app.js --name myapp1
           npx pm2 save
